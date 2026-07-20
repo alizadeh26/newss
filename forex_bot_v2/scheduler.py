@@ -9,7 +9,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from forex_bot_v2.analysis import build_analysis
+from forex_bot_v2.analysis import build_analysis, build_empty_events_message
 from forex_bot_v2.config import Settings
 from forex_bot_v2.notifications import TelegramNotifier
 from forex_bot_v2.scraper import ForexFactoryScraper
@@ -48,7 +48,22 @@ class ForexBotV2:
 
     def run_dispatch(self) -> None:
         self.store.init_db()
+        try:
+            html = self.scraper.fetch_calendar_html()
+            events = self.scraper.parse_calendar_html(
+                html,
+                month_key=f"{datetime.now(timezone.utc).year}-{datetime.now(timezone.utc).month:02d}",
+            )
+            self.store.upsert_events(events)
+            logger.info("Dispatch refreshed %d events", len(events))
+        except Exception as exc:
+            logger.exception("Dispatch refresh failed: %s", exc)
+
         rows = self.store.get_upcoming_events(limit=5)
+        if not rows:
+            self._safe_send_message(build_empty_events_message(), "no-upcoming-events")
+            return
+
         for row in rows:
             text = build_analysis(
                 title=row["title"],
