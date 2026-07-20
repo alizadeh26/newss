@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from forex_bot_v2.analysis import build_analysis, confidence_score, event_weight
+from forex_bot_v2.analysis import build_analysis, build_empty_events_message, confidence_score, event_weight
 from forex_bot_v2.config import Settings
 from forex_bot_v2.models import Event
 from forex_bot_v2.storage import SQLiteEventStore
@@ -43,6 +43,9 @@ class AnalysisTests(unittest.TestCase):
         )
         self.assertIn("Preparation alert", text)
         self.assertIn("CPI Inflation", text)
+
+    def test_empty_events_message_is_clear(self):
+        self.assertIn("No upcoming events found", build_empty_events_message())
 
 
 class StorageTests(unittest.TestCase):
