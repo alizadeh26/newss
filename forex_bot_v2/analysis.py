@@ -94,6 +94,10 @@ def map_pair_bias(currency: str, confidence: int) -> List[str]:
     return ["No specific pair mapping available"]
 
 
+def build_empty_events_message() -> str:
+    return "No upcoming events found. The bot will retry on the next run."
+
+
 def build_analysis(title: str, currency: str, impact: str, event_time_utc: str, stage: str) -> str:
     score = event_weight(title, impact)
     tier = classify_event_tier(title)
